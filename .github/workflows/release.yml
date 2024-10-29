@@ -1,4 +1,4 @@
-name: Release
+name: Release DevBuild
 permissions: write-all
 
 on:
@@ -35,7 +35,11 @@ jobs:
 
             - name: Run Electron Builder
               run: |
-                  pnpm electron-builder --${{ matrix.os }} --publish always
+                  if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+                      pnpm electron-builder --linux --publish always
+                  else
+                      pnpm electron-builder --win --publish always
+                  fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
