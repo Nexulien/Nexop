@@ -3,9 +3,10 @@ permissions: write-all
 
 on:
     push:
-        tags:
-            - v*
-    workflow_dispatch:
+        branches:
+            - main
+env:
+    FORCE_COLOR: true
 
 jobs:
     release:
@@ -14,15 +15,11 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest, windows-latest]
-                include:
-                    - os: ubuntu-latest
-                      platform: linux
-                    - os: windows-latest
-                      platform: windows
 
         steps:
             - uses: actions/checkout@v4
-            - uses: pnpm/action-setup@v4 # Install pnpm using packageManager key in package.json
+
+            - uses: pnpm/action-setup@v4
 
             - name: Use Node.js 20
               uses: actions/setup-node@v4
@@ -33,11 +30,25 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Build
+            - name: Build application
               run: pnpm build
 
             - name: Run Electron Builder
               run: |
-                  pnpm electron-builder --${{ matrix.platform }} --publish always
+                  pnpm electron-builder --${{ matrix.os }} --publish always
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Get release tag
+              id: release_tag
+              run: |
+                  echo "release_tag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+            - name: Upload DevBuild as release
+              if: github.repository == 'Nexulien/Nexop'
+              run: |
+                  gh release upload devbuild --clobber dist/*
+                  gh release edit devbuild --title "DevBuild $RELEASE_TAG"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RELEASE_TAG: ${{ env.release_tag }}
