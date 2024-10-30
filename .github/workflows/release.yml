@@ -52,8 +52,11 @@ jobs:
             - name: Upload DevBuild as release
               if: github.repository == 'Nexulien/Nexop'
               run: |
-                  gh release upload devbuild --clobber dist/*
+                  files=$(find dist -type f)
+                  gh release upload devbuild $files --clobber
                   gh release edit devbuild --title "DevBuild $RELEASE_TAG"
+              shell: bash
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   RELEASE_TAG: ${{ env.release_tag }}
+
