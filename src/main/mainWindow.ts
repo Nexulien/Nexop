@@ -533,6 +533,6 @@ export async function createWindows() {
             console.warn(`'did-navigate': Caught bad page response: ${responseCode}, redirecting to main app`);
         }
     });
-
+  
     initArRPC();
 }
